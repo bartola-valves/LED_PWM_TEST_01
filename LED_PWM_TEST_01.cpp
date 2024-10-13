@@ -82,6 +82,39 @@ void generate_rainbow_colors(uint16_t *r, uint16_t *g, uint16_t *b, float hue)
     *b = (uint16_t)((sin(hue + 4 * M_PI / 3) + 1) * (MAX_PWM / 2));
 }
 
+// Define a function to set the RGB values based on a color index
+void set_color_by_index(uint8_t color_index)
+{
+    // Define a list of colors (R, G, B)
+    uint8_t colors[][3] = {
+        {255, 0, 0},    // Red
+        {0, 255, 0},    // Green
+        {0, 0, 255},    // Blue
+        {0, 255, 255},  // Cyan
+        {255, 0, 255},  // Magenta
+        {255, 255, 0},  // Yellow
+        {255, 255, 255},// White
+        {0, 0, 0},      // Black (off)
+        {255, 165, 0},  // Orange
+        {255, 192, 203},// Pink
+        {128, 0, 128},  // Purple
+        {173, 216, 230},// Light Blue
+        {0, 128, 128}   // Teal
+    };
+
+    // Get the number of colors in the list
+    uint8_t num_colors = sizeof(colors) / sizeof(colors[0]);
+
+    // Ensure the color index is within the valid range
+    if (color_index >= num_colors)
+    {
+        color_index = 0; // Default to the first color if the index is out of range
+    }
+
+    // Set the RGB values based on the color index
+    LED_set(colors[color_index][0], colors[color_index][1], colors[color_index][2]);
+}
+
 // define a single LED PWM test using LED_PWM. Firstly we will initialise GPIO pin 1 as a PWM output and set the PWM frequency to 1 kHz.
 // Then we will set the duty cycle to 50% and wait for 5 seconds before turning off the LED.
 void LED_PWM_test()
@@ -176,26 +209,15 @@ int main()
     // Initialize the RGB LEDs
     LED_init();
 
-    // Variables to store the RGB values
-    uint16_t r, g, b;
-    float hue = 0.0;
-
+    //infitite loop to test the different colors
     while (true)
     {
-        // Generate rainbow colors
-        generate_rainbow_colors(&r, &g, &b, hue);
-
-        // Set the RGB values
-        LED_set(r, g, b);
-
-        // Increment the hue
-        hue += 0.01;
-        if (hue >= 2 * M_PI)
+        // Set the RGB values based on the color index
+        for (uint8_t i = 0; i < 13; i++)
         {
-            hue = 0.0;
+            set_color_by_index(i);
+            sleep_ms(200); // Wait  before changing to the next color
         }
-
-        // Wait for a short period
-        sleep_ms(100);
     }
+
 }
