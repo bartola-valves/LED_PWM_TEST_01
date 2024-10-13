@@ -1,13 +1,17 @@
 #include <stdio.h>
+#include <math.h>
 #include "pico/stdlib.h"
 #include "hardware/pwm.h" // Include this library for PWM management
 
 
-// define 3 LEDs (RGB) connected to GPIO pins 15, 14, 13
+// define 3 LEDs (RGB) connected to GPIO pins 16,17,18 which are PWM slices 0,1,2
 // the LEDs are common anode, so to turn on the LED, the GPIO pin should be set to 0
-#define LED_R 15
-#define LED_G 14
-#define LED_B 13
+#define LED_R 16
+#define LED_G 17
+#define LED_B 18
+
+// Define the maximum PWM value for 12-bit resolution
+#define MAX_PWM 4095
 
 // define single LED for PWM test connected to GPIO pin 1
 #define LED_PWM 1
@@ -67,6 +71,15 @@ void LED_set(uint8_t r, uint8_t g, uint8_t b)
     pwm_set_gpio_level(LED_R, duty_r);
     pwm_set_gpio_level(LED_G, duty_g);
     pwm_set_gpio_level(LED_B, duty_b);
+}
+
+// Define a function to generate rainbow colors
+void generate_rainbow_colors(uint16_t *r, uint16_t *g, uint16_t *b, float hue)
+{
+    // Calculate the RGB values based on the hue
+    *r = (uint16_t)((sin(hue) + 1) * (MAX_PWM / 2));
+    *g = (uint16_t)((sin(hue + 2 * M_PI / 3) + 1) * (MAX_PWM / 2));
+    *b = (uint16_t)((sin(hue + 4 * M_PI / 3) + 1) * (MAX_PWM / 2));
 }
 
 // define a single LED PWM test using LED_PWM. Firstly we will initialise GPIO pin 1 as a PWM output and set the PWM frequency to 1 kHz.
@@ -160,24 +173,29 @@ int main()
 {
     stdio_init_all();
 
-    //configure LED_PWM on GPIO 1 as output
-    //gpio_init(LED_PWM);
-    //set the direction of the GPIO pin to output
-    //gpio_set_dir(LED_PWM, GPIO_OUT);
+    // Initialize the RGB LEDs
+    LED_init();
 
-    // initialise the LED_PWM
-    LED_PWM_init();
+    // Variables to store the RGB values
+    uint16_t r, g, b;
+    float hue = 0.0;
 
     while (true)
-    {    
-        
-        sleep_ms(1000);
-        // increment the LED_PWM duty cycle gradually over 5 seconds. Brightness level can now be adjusted from 0 to 4095
-        for (uint16_t i = 0; i < 4096; i++)
+    {
+        // Generate rainbow colors
+        generate_rainbow_colors(&r, &g, &b, hue);
+
+        // Set the RGB values
+        LED_set(r, g, b);
+
+        // Increment the hue
+        hue += 0.01;
+        if (hue >= 2 * M_PI)
         {
-            LED_PWM_set(i);
-            sleep_ms(5);
+            hue = 0.0;
         }
-       
+
+        // Wait for a short period
+        sleep_ms(100);
     }
 }
