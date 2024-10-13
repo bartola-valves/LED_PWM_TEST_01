@@ -131,24 +131,24 @@ void LED_PWM_init()
     uint slice_num = pwm_gpio_to_slice_num(LED_PWM);
 
     // Set the PWM frequency to 10 kHz
-    uint32_t freq = 10000; // 10 kHz
+    uint32_t freq = 1000; // 1 kHz
     uint32_t clock = 125000000; // 125 MHz system clock
-    float divider = (float)clock / (freq * 256); // Calculate the clock divider
+    float divider = (float)clock / (freq * 4096); // Calculate the clock divider for 12-bit resolution
     pwm_set_clkdiv(slice_num, divider);
 
-    // Set the PWM wrap value to 255 (8-bit resolution)
-    pwm_set_wrap(slice_num, 255);
+    // Set the PWM wrap value to 4095 (12-bit resolution)
+    pwm_set_wrap(slice_num, 4095);
 
     // Set the PWM channel to a 50% duty cycle
-    pwm_set_chan_level(slice_num, pwm_gpio_to_channel(LED_PWM), 127);
+    pwm_set_chan_level(slice_num, pwm_gpio_to_channel(LED_PWM), 2048);
 
     // Enable the PWM slice
     pwm_set_enabled(slice_num, true);
 }
 
-//define the LED_PWM_set function to set the duty cycle of the LED. The duty cycle is a value between 0 and 255.
-// 0 means the LED is on and 255 means the LED is fully off.
-void LED_PWM_set(uint8_t duty_cycle)
+// Define the LED_PWM_set function to set the duty cycle of the LED. The duty cycle is a value between 0 and 4095.
+// 0 means the LED is off and 4095 means the LED is fully on.
+void LED_PWM_set(uint16_t duty_cycle)
 {
     // Set the duty cycle of the LED
     pwm_set_gpio_level(LED_PWM, duty_cycle);
@@ -172,13 +172,12 @@ int main()
     {    
         
         sleep_ms(1000);
-        // increment the LED_PWM duty cycle gradually over 5 seconds
-        for (int i = 0; i <= 255; i++)
+        // increment the LED_PWM duty cycle gradually over 5 seconds. Brightness level can now be adjusted from 0 to 4095
+        for (uint16_t i = 0; i < 4096; i++)
         {
-            //set the duty cycle of the LED_PWM
             LED_PWM_set(i);
-            //wait for 20 ms
-            sleep_ms(20);
+            sleep_ms(5);
         }
+       
     }
 }
